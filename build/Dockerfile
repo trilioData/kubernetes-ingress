@@ -301,6 +301,7 @@ RUN CGO_ENABLED=0 GOFLAGS='-mod=vendor' \
 FROM files AS container
 COPY --chown=nginx:0 --from=builder /nginx-ingress /
 
+STOPSIGNAL SIGTERM
 USER nginx
 
 
@@ -308,4 +309,5 @@ USER nginx
 FROM files AS local
 COPY --chown=nginx:0 nginx-ingress /
 
+STOPSIGNAL SIGTERM
 USER nginx
