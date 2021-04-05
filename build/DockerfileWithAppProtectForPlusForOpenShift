@@ -113,9 +113,9 @@ COPY internal/configs/version1/nginx-plus.ingress.tmpl \
 RUN mkdir licenses
 COPY LICENSE /licenses
 
-STOPSIGNAL SIGTERM
 USER nginx
 
+STOPSIGNAL SIGTERM
 ENTRYPOINT ["/nginx-ingress"]
 
 
