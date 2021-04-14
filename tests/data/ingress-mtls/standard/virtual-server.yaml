@@ -3,7 +3,7 @@ kind: VirtualServer
 metadata:
   name: virtual-server
 spec:
-  host: webapp.example.com
+  host: virtual-server.example.com
   tls:
     secret: tls-secret
   upstreams:
