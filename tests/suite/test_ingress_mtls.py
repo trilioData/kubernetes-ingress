@@ -30,14 +30,14 @@ from suite.custom_resources_utils import (
 )
 from settings import TEST_DATA, DEPLOYMENTS
 
-std_vs_src = f"{TEST_DATA}/virtual-server/standard/virtual-server.yaml"
+std_vs_src = f"{TEST_DATA}/ingress-mtls/standard/virtual-server.yaml"
 mtls_sec_valid_src = f"{TEST_DATA}/ingress-mtls/secret/ingress-mtls-secret.yaml"
 mtls_sec_invalid_src = f"{TEST_DATA}/ingress-mtls/secret/ingress-mtls-secret.yaml"
 tls_sec_valid_src = f"{TEST_DATA}/ingress-mtls/secret/tls-secret.yaml"
 mtls_pol_valid_src = f"{TEST_DATA}/ingress-mtls/policies/ingress-mtls.yaml"
 mtls_vs_src = f"{TEST_DATA}/ingress-mtls/spec/virtual-server-mtls.yaml"
-crt = f"{TEST_DATA}/ingress-mtls/client-auth/server.pem"
-key = f"{TEST_DATA}/ingress-mtls/client-auth/public_key.pem"
+crt = f"{TEST_DATA}/ingress-mtls/client-auth/client-cert.pem"
+key = f"{TEST_DATA}/ingress-mtls/client-auth/client-key.pem"
 
 @pytest.mark.imtls
 @pytest.mark.parametrize(
