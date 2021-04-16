@@ -20,20 +20,14 @@ def get_certificate(ip_address, host, port, timeout=10) -> str:
     context = ssl.create_default_context()
     context.check_hostname = False
     context.verify_mode = ssl.CERT_NONE
-    # conn = socket.create_connection((ip_address, port))
     server_hostname = host if ssl.HAS_SNI else None
-    cert = ssl.get_server_certificate((ip_address, port))
     print("--------------")
     print(server_hostname)
     print(port)
-    print(cert)
     print("--------------")
-    # x509 = M2Crypto.X509.load_cert_string(cert)
-    # x509.get_subject().as_text()
     with socket.create_connection((ip_address, port)) as sock:
         with context.wrap_socket(sock, server_hostname=server_hostname) as ssock:
             print(ssock.version())
-    # sock = context.wrap_socket(conn, server_hostname=server_hostname)
             ssock.settimeout(timeout)
             try:
                 der_cert = ssock.getpeercert(True)

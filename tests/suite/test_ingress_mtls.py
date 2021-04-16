@@ -66,7 +66,7 @@ class TestIngressMtlsPolicies:
 
         return mtls_secret_name, tls_secret_name, pol_name
 
-    def test_ingress_mtls_policy_token_1(
+    def test_ingress_mtls_policy_token(
         self, kube_apis, crd_ingress_controller, virtual_server_setup, test_namespace,
     ):
         """
