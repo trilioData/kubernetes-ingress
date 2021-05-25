@@ -53,5 +53,8 @@ hack/controller-gen-*
 docs-web/.netlify/state.json
 site/
 venv/
-
+docs/public
+docs/themes/f5-hugo
 dist/
+.netlify/
+docs/.netlify
