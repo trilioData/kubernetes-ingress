@@ -93,11 +93,12 @@ The numbered list that follows describes each connection with its type in curly 
 13. (File I/O) The *NGINX master* sends logs to its *stdout* and *stderr*, which are collected by the container runtime.
 14. (File I/O) The *NGINX master* reads the *TLS cert and keys* referenced in the configuration when it starts or reloads.
 15. (File I/O) The *NGINX master* reads *configuration files* when it starts or during a reload.
-16. (File I/O) An *NGINX worker* writes logs to its *stdout* and *stderr*, which are collected by the container runtime.
-17. (UDP) An *NGINX worker* sends the HTTP upstream server response latency logs via the Syslog protocol over the UNIX socket `/var/lib/nginx/nginx-syslog.sock` to the *IC*. In turn, the *IC* analyzes and transforms the logs into Prometheus metrics.
-18. (HTTP,HTTPS,TCP,UDP) A *client* sends traffic to and receives traffic from any of the *NGINX workers* on ports 80 and 443 and any additional ports exposed by the [GlobalConfiguration resource](/nginx-ingress-controller/configuration/global-configuration/globalconfiguration-resource).
-19. (HTTP,HTTPS,TCP,UDP) An *NGINX worker* sends traffic to and receives traffic from the *backends*.
-20. (HTTP) *Admin* can connect to the [NGINX stub_status](http://nginx.org/en/docs/http/ngx_http_stub_status_module.html#stub_status) using port 8080 via an *NGINX worker*. **Note**: By default, NGINX only allows connections from `127.0.0.1`.
+16. (Signal) The *NGINX master* controls the [lifecycle of *NGINX workers*](https://nginx.org/en/docs/control.html#reconfiguration) it creates workers with the new configuration and shutdowns workers with the old configuration.
+17. (File I/O) An *NGINX worker* writes logs to its *stdout* and *stderr*, which are collected by the container runtime.
+18. (UDP) An *NGINX worker* sends the HTTP upstream server response latency logs via the Syslog protocol over the UNIX socket `/var/lib/nginx/nginx-syslog.sock` to the *IC*. In turn, the *IC* analyzes and transforms the logs into Prometheus metrics.
+19. (HTTP,HTTPS,TCP,UDP) A *client* sends traffic to and receives traffic from any of the *NGINX workers* on ports 80 and 443 and any additional ports exposed by the [GlobalConfiguration resource](/nginx-ingress-controller/configuration/global-configuration/globalconfiguration-resource).
+20. (HTTP,HTTPS,TCP,UDP) An *NGINX worker* sends traffic to and receives traffic from the *backends*.
+21. (HTTP) *Admin* can connect to the [NGINX stub_status](http://nginx.org/en/docs/http/ngx_http_stub_status_module.html#stub_status) using port 8080 via an *NGINX worker*. **Note**: By default, NGINX only allows connections from `127.0.0.1`.
 
 ### Differences for NGINX Plus
 
@@ -188,11 +189,11 @@ The cache is actually a collection of *informers*. The following diagram shows h
 
 ![IC process components](how-nginx-ingress-controller-works-images/ic-process-components.png)
 
-* For every resource type the IC monitors, it creates an [*Informer*](https://pkg.go.dev/k8s.io/client-go@v0.21.0/tools/cache#SharedInformer). The *Informer* includes a *Store* that holds the resources of that type. To keep the *Store* in sync with the latest versions of the resources in the cluster, the *Informer* calls the Watch and List *Kubernetes APIs* for that resource type (see the arrow *1. Watches and Lists* on the diagram).
-* When a change happens in the cluster (for example, a new resource is created), the *Informer* updates its *Store* and invokes [*Handlers*](https://pkg.go.dev/k8s.io/client-go@v0.21.0/tools/cache#ResourceEventHandler) (see the arrow *2. Invokes*) for that *Informer*.
-* The IC registers handlers for every *Informer*. Most of the time, a *Handler* creates an entry for the affected resource in the *Workqueue* where a workqueue element includes the type of the resource and its namespace and name. (See the arrow *3. Puts*.)
-* The *Workqueue* always tries to drain itself: if there is an element at the front, the queue will remove the element and send it to the *Controller* by calling a callback function. (See the arrow *4. Sends*.)
-* The *Controller* is the primary component in the IC, which represents the control loop. We explain the components in [The Control Loop](#the-control-loop) section. For now, it suffices to know that to process a workqueue element, the *Controller* component gets the latest version of the resource from the *Store* (see the arrow *5. Gets*), reconfigures *NGINX* according to the resource (see the arrow *6. Reconfigures*), updates the resource status, and emits an event via the *Kubernetes API* (see the arrow  *7. Updates status and emits events*).
+* For every resource type the IC monitors, it creates an [*Informer*](https://pkg.go.dev/k8s.io/client-go@v0.21.0/tools/cache#SharedInformer). The *Informer* includes a *Store* that holds the resources of that type. To keep the *Store* in sync with the latest versions of the resources in the cluster, the *Informer* calls the Watch and List *Kubernetes APIs* for that resource type (see the arrow *1. Watch and List* on the diagram).
+* When a change happens in the cluster (for example, a new resource is created), the *Informer* updates its *Store* and invokes [*Handlers*](https://pkg.go.dev/k8s.io/client-go@v0.21.0/tools/cache#ResourceEventHandler) (see the arrow *2. Invoke*) for that *Informer*.
+* The IC registers handlers for every *Informer*. Most of the time, a *Handler* creates an entry for the affected resource in the *Workqueue* where a workqueue element includes the type of the resource and its namespace and name. (See the arrow *3. Put*.)
+* The *Workqueue* always tries to drain itself: if there is an element at the front, the queue will remove the element and send it to the *Controller* by calling a callback function. (See the arrow *4. Send*.)
+* The *Controller* is the primary component in the IC, which represents the control loop. We explain the components in [The Control Loop](#the-control-loop) section. For now, it suffices to know that to process a workqueue element, the *Controller* component gets the latest version of the resource from the *Store* (see the arrow *5. Get*), reconfigures *NGINX* according to the resource (see the arrow *6. Reconfigure*), updates the resource status, and emits an event via the *Kubernetes API* (see the arrow  *7. Update status and emit event*).
 
 ### The Control Loop
 
@@ -233,7 +234,7 @@ Rather than show how all the various sync methods work, we focus on the most imp
     1. Calls *Manager’s CreateConfig()* to  update the config for the Ingress resource.
     2. Calls *Manager’s Reload()* to reload NGINX.
 7. The reload status is propagated from *Manager* to *processChanges*. The status is either a success or a failure with an error message.
-8. *processChanges* calls *updateRegularIngressStatusAndEvent* to update the status of the Ingress resource and emits an event with the status of the reload. Both involve making an API call to the Kubernetes API.
+8. *processChanges* calls *updateRegularIngressStatusAndEvent* to update the status of the Ingress resource and emit an event with the status of the reload. Both involve making an API call to the Kubernetes API.
 
 Notes:
 
@@ -243,7 +244,7 @@ Notes:
 
 #### Helper Components
 
-There are two additional helper components crucial for processing changes *Configuration* and *LocalSecretStore*.
+There are two additional helper components crucial for processing changes: *Configuration* and *LocalSecretStore*.
 
 ##### Configuration
 
