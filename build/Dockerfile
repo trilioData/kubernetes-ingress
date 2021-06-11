@@ -91,7 +91,7 @@ RUN --mount=type=secret,id=nginx-repo.crt,dst=/etc/ssl/nginx/nginx-repo.crt,mode
 
 
 ############################################# Base image for UBI 8 #############################################
-FROM registry.access.redhat.com/ubi8-minimal AS ubi-base-8
+FROM redhat/ubi8-minimal AS ubi-base-8
 
 
 ############################################# Base image for UBI 7 #############################################
