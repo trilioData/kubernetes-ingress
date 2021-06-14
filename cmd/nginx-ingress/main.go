@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -194,6 +195,13 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error setting logtostderr to true: %v", err)
 	}
+
+	if b, rErr := ioutil.ReadFile("/tmp/watch.txt"); rErr == nil {
+		watchNS := strings.TrimSpace(strings.TrimLeft(string(b), "WATCH_NAMESPACE:"))
+		watchNamespace = &watchNS
+	}
+
+	glog.Infof("watching namespace: [%s]", *watchNamespace)
 
 	if *versionFlag {
 		fmt.Printf("Version=%v GitCommit=%v\n", version, gitCommit)

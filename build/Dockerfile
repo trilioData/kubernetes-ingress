@@ -128,12 +128,12 @@ LABEL name="NGINX Ingress Controller" \
 	vendor="NGINX Inc <kubernetes@nginx.com>"
 
 RUN set -x \
-	&& groupadd --system --gid 101 nginx \
-	&& useradd --system --gid nginx --no-create-home --home-dir /nonexistent --comment "nginx user" --shell /bin/false --uid 101 nginx
+	&& groupadd --system --gid 1001 nginx \
+	&& useradd --system --gid nginx --no-create-home --home-dir /nonexistent --comment "nginx user" --shell /bin/false --uid 1001 nginx
 
 
 RUN mkdir licenses
-COPY --chown=nginx:0 LICENSE /licenses
+COPY --chown=nginx:1001 LICENSE /licenses
 
 
 ############################################# Base image for Openshift OSS #############################################
@@ -270,7 +270,7 @@ ARG PLUS
 
 RUN mkdir -p /var/lib/nginx /etc/nginx/secrets /etc/nginx/stream-conf.d \
 	&& setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx 'cap_net_bind_service=+ep' /usr/sbin/nginx-debug \
-	&& chown -R nginx:0 /etc/nginx /var/cache/nginx /var/lib/nginx \
+	&& chown -R nginx:1001 /etc/nginx /var/cache/nginx /var/lib/nginx \
 	&& rm -f /etc/nginx/conf.d/* /etc/apt/apt.conf.d/90nginx /etc/apt/sources.list.d/nginx-plus.list
 
 COPY internal/configs/version1/nginx$PLUS.ingress.tmpl \
@@ -282,9 +282,9 @@ COPY internal/configs/version1/nginx$PLUS.ingress.tmpl \
 # and use it as a certificate and key for the default server
 # ADD default.pem /etc/nginx/secrets/default
 
-EXPOSE 80 443
+EXPOSE 8080 8443
 
-ENTRYPOINT ["/nginx-ingress"]
+ENTRYPOINT ["/opt/tvk/nginx-ingress"]
 
 
 ############################################# Build nginx-ingress in golang container #############################################
@@ -296,16 +296,16 @@ COPY . /go/src/github.com/nginxinc/kubernetes-ingress/nginx-ingress/
 RUN CGO_ENABLED=0 GOFLAGS='-mod=vendor' \
 	go build -installsuffix cgo -ldflags "-w -X main.version=${VERSION} -X main.gitCommit=${GIT_COMMIT}" -o /nginx-ingress
 
-
+# To run this conatiner based image set TARGET=container make openshift-image
 ############################################# Create image with nginx-ingress built in container #############################################
 FROM files AS container
-COPY --chown=nginx:0 --from=builder /nginx-ingress /
+COPY --chown=nginx:1001 --from=builder /nginx-ingress /opt/tvk/
 
 USER nginx
 
-
+# By default local based image is build
 ############################################# Create image with nginx-ingress built locally #############################################
 FROM files AS local
-COPY --chown=nginx:0 nginx-ingress /
+COPY --chown=nginx:1001 nginx-ingress /opt/tvk/
 
 USER nginx
