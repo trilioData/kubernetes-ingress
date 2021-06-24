@@ -15,7 +15,7 @@ server {
 	listen {{$port}}{{if $server.ProxyProtocol}} proxy_protocol{{end}};
 	{{- end}}
 	{{end}}
-
+	large_client_header_buffers {{$server.ClientHeaderBuffer}};
 	{{if $server.SSL}}
 	{{if $server.TLSPassthrough}}
 	listen unix:/var/lib/nginx/passthrough-https.sock ssl{{if $server.HTTP2}} http2{{end}} proxy_protocol;

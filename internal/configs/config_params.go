@@ -6,6 +6,7 @@ import conf_v1alpha1 "github.com/nginxinc/kubernetes-ingress/pkg/apis/configurat
 // as well as configs for Ingress resources.
 type ConfigParams struct {
 	ClientMaxBodySize                      string
+	ClientHeaderBuffer                     string
 	DefaultServerAccessLogOff              bool
 	DefaultServerReturn                    string
 	FailTimeout                            string
@@ -139,6 +140,7 @@ func NewDefaultConfigParams() *ConfigParams {
 		ProxyReadTimeout:              "60s",
 		ProxySendTimeout:              "60s",
 		ClientMaxBodySize:             "1m",
+		ClientHeaderBuffer:            "4 16k",
 		SSLRedirect:                   true,
 		MainServerNamesHashBucketSize: "256",
 		MainServerNamesHashMaxSize:    "1024",

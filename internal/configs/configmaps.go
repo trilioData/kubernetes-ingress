@@ -76,6 +76,10 @@ func ParseConfigMap(cfgm *v1.ConfigMap, nginxPlus bool, hasAppProtect bool) *Con
 		cfgParams.ClientMaxBodySize = clientMaxBodySize
 	}
 
+	if largeClientHeaderBuffers, exists := cfgm.Data["large-client-header-buffers"]; exists {
+		cfgParams.ClientHeaderBuffer = largeClientHeaderBuffers
+	}
+
 	if serverNamesHashBucketSize, exists := cfgm.Data["server-names-hash-bucket-size"]; exists {
 		cfgParams.MainServerNamesHashBucketSize = serverNamesHashBucketSize
 	}
