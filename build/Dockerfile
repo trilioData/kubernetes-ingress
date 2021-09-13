@@ -118,7 +118,7 @@ COPY --chown=nginx:0 build/log-default.json /etc/nginx
 
 
 ############################################# Base image for Openshift #############################################
-FROM registry.access.redhat.com/ubi8/ubi:8.3 AS openshift-base
+FROM registry.access.redhat.com/ubi8/ubi:latest AS openshift-base
 
 LABEL name="NGINX Ingress Controller" \
 	description="The Ingress controller is an application that runs in a cluster and configures an HTTP load balancer according to Ingress resources." \
@@ -126,6 +126,8 @@ LABEL name="NGINX Ingress Controller" \
 	io.openshift.tags="nginx,ingress-controller,ingress,controller,kubernetes,openshift" \
 	maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>" \
 	vendor="NGINX Inc <kubernetes@nginx.com>"
+
+RUN yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical
 
 RUN set -x \
 	&& groupadd --system --gid 1001 nginx \
